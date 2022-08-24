@@ -65,6 +65,7 @@ public class BandcampPlaylistExtractor extends PlaylistExtractor {
         }
     }
 
+    @Nonnull
     @Override
     public String getThumbnailUrl() throws ParsingException {
         if (albumJson.isNull("art_id")) {
@@ -72,11 +73,6 @@ public class BandcampPlaylistExtractor extends PlaylistExtractor {
         } else {
             return getImageUrl(albumJson.getLong("art_id"), true);
         }
-    }
-
-    @Override
-    public String getBannerUrl() {
-        return "";
     }
 
     @Override
@@ -112,24 +108,6 @@ public class BandcampPlaylistExtractor extends PlaylistExtractor {
 
     @Nonnull
     @Override
-    public String getSubChannelName() {
-        return "";
-    }
-
-    @Nonnull
-    @Override
-    public String getSubChannelUrl() {
-        return "";
-    }
-
-    @Nonnull
-    @Override
-    public String getSubChannelAvatarUrl() {
-        return "";
-    }
-
-    @Nonnull
-    @Override
     public InfoItemsPage<StreamInfoItem> getInitialPage() throws ExtractionException {
 
         final StreamInfoItemsCollector collector = new StreamInfoItemsCollector(getServiceId());
@@ -146,14 +124,13 @@ public class BandcampPlaylistExtractor extends PlaylistExtractor {
                 collector.commit(new BandcampPlaylistStreamInfoItemExtractor(
                         track, getUploaderUrl(), getThumbnailUrl()));
             }
-
         }
 
         return new InfoItemsPage<>(collector, null);
     }
 
     @Override
-    public InfoItemsPage<StreamInfoItem> getPage(Page page) {
+    public InfoItemsPage<StreamInfoItem> getPage(final Page page) {
         return null;
     }
 
