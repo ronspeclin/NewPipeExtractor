@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import static org.schabi.newpipe.extractor.services.soundcloud.SoundcloudParsingHelper.SOUNDCLOUD_API_V2_URL;
 import static org.schabi.newpipe.extractor.utils.Utils.isNullOrEmpty;
@@ -67,7 +66,7 @@ public class SoundcloudPlaylistExtractor extends PlaylistExtractor {
         return playlist.getString("title");
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public String getThumbnailUrl() {
         String artworkUrl = playlist.getString("artwork_url");
@@ -80,7 +79,9 @@ public class SoundcloudPlaylistExtractor extends PlaylistExtractor {
 
                 for (final StreamInfoItem item : infoItems.getItems()) {
                     artworkUrl = item.getThumbnailUrl();
-                    if (!isNullOrEmpty(artworkUrl)) break;
+                    if (!isNullOrEmpty(artworkUrl)) {
+                        break;
+                    }
                 }
             } catch (final Exception ignored) {
             }
@@ -91,11 +92,6 @@ public class SoundcloudPlaylistExtractor extends PlaylistExtractor {
         }
 
         return artworkUrl.replace("large.jpg", "crop.jpg");
-    }
-
-    @Override
-    public String getBannerUrl() {
-        return null;
     }
 
     @Override
@@ -121,24 +117,6 @@ public class SoundcloudPlaylistExtractor extends PlaylistExtractor {
     @Override
     public long getStreamCount() {
         return playlist.getLong("track_count");
-    }
-
-    @Nonnull
-    @Override
-    public String getSubChannelName() {
-        return "";
-    }
-
-    @Nonnull
-    @Override
-    public String getSubChannelUrl() {
-        return "";
-    }
-
-    @Nonnull
-    @Override
-    public String getSubChannelAvatarUrl() {
-        return "";
     }
 
     @Nonnull
