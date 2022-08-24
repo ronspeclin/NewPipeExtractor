@@ -97,6 +97,7 @@ public class YoutubeMixPlaylistExtractor extends PlaylistExtractor {
         return name;
     }
 
+    @Nonnull
     @Override
     public String getThumbnailUrl() throws ParsingException {
         try {
@@ -108,13 +109,9 @@ public class YoutubeMixPlaylistExtractor extends PlaylistExtractor {
                         .getObject("watchEndpoint").getString("videoId"));
             } catch (final Exception ignored) {
             }
+
             throw new ParsingException("Could not get playlist thumbnail", e);
         }
-    }
-
-    @Override
-    public String getBannerUrl() {
-        return "";
     }
 
     @Override
@@ -148,8 +145,8 @@ public class YoutubeMixPlaylistExtractor extends PlaylistExtractor {
 
     @Nonnull
     @Override
-    public InfoItemsPage<StreamInfoItem> getInitialPage() throws IOException,
-            ExtractionException {
+    public InfoItemsPage<StreamInfoItem> getInitialPage()
+            throws IOException, ExtractionException {
         final StreamInfoItemsCollector collector = new StreamInfoItemsCollector(getServiceId());
         collectStreamsFrom(collector, playlistData.getArray("contents"));
 
@@ -159,15 +156,16 @@ public class YoutubeMixPlaylistExtractor extends PlaylistExtractor {
         return new InfoItemsPage<>(collector, getNextPageFrom(playlistData, cookies));
     }
 
-    private Page getNextPageFrom(final JsonObject playlistJson,
-                                 final Map<String, String> cookies) throws IOException,
-            ExtractionException {
+    @Nonnull
+    private Page getNextPageFrom(@Nonnull final JsonObject playlistJson,
+                                 final Map<String, String> cookies)
+            throws IOException, ExtractionException {
+
         final JsonObject lastStream = ((JsonObject) playlistJson.getArray("contents")
                 .get(playlistJson.getArray("contents").size() - 1));
         if (lastStream == null || lastStream.getObject("playlistPanelVideoRenderer") == null) {
             throw new ExtractionException("Could not extract next page url");
         }
-
         final JsonObject watchEndpoint = lastStream.getObject("playlistPanelVideoRenderer")
                 .getObject("navigationEndpoint").getObject("watchEndpoint");
         final String playlistId = watchEndpoint.getString("playlistId");
@@ -210,14 +208,12 @@ public class YoutubeMixPlaylistExtractor extends PlaylistExtractor {
         // +1 because the stream of "currentIndex" was already extracted in previous request
         final List<Object> newStreams =
                 allStreams.subList(playlistJson.getInt("currentIndex") + 1, allStreams.size());
-
         collectStreamsFrom(collector, newStreams);
         return new InfoItemsPage<>(collector, getNextPageFrom(playlistJson, page.getCookies()));
     }
 
     private void collectStreamsFrom(@Nonnull final StreamInfoItemsCollector collector,
                                     @Nullable final List<Object> streams) {
-
         if (streams == null) {
             return;
         }
@@ -236,7 +232,8 @@ public class YoutubeMixPlaylistExtractor extends PlaylistExtractor {
         }
     }
 
-    private String getThumbnailUrlFromPlaylistId(final String playlistId) throws ParsingException {
+    @Nonnull
+    private String getThumbnailUrlFromPlaylistId(@Nonnull final String playlistId) throws ParsingException {
         final String videoId;
         if (playlistId.startsWith("RDMM")) {
             videoId = playlistId.substring(4);
@@ -251,25 +248,8 @@ public class YoutubeMixPlaylistExtractor extends PlaylistExtractor {
         return getThumbnailUrlFromVideoId(videoId);
     }
 
+    @Nonnull
     private String getThumbnailUrlFromVideoId(final String videoId) {
         return "https://i.ytimg.com/vi/" + videoId + "/hqdefault.jpg";
-    }
-
-    @Nonnull
-    @Override
-    public String getSubChannelName() {
-        return "";
-    }
-
-    @Nonnull
-    @Override
-    public String getSubChannelUrl() {
-        return "";
-    }
-
-    @Nonnull
-    @Override
-    public String getSubChannelAvatarUrl() {
-        return "";
     }
 }
