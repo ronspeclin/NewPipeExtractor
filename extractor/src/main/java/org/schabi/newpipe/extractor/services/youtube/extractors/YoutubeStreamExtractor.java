@@ -665,15 +665,21 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     @Override
     public List<VideoStream> getVideoStreams() throws ExtractionException {
         assertPageFetched();
-        return getItags(FORMATS, ItagItem.ItagType.VIDEO,
+        System.out.println("[DEBUG] Getting video streams from formats");
+        List<VideoStream> streams = getItags(FORMATS, ItagItem.ItagType.VIDEO,
                 getVideoStreamBuilderHelper(false), "video");
+        System.out.println("[DEBUG] Found " + streams.size() + " video streams");
+        return streams;
     }
 
     @Override
     public List<VideoStream> getVideoOnlyStreams() throws ExtractionException {
         assertPageFetched();
-        return getItags(ADAPTIVE_FORMATS, ItagItem.ItagType.VIDEO_ONLY,
+        System.out.println("[DEBUG] Getting video-only streams from adaptive formats");
+        List<VideoStream> streams = getItags(ADAPTIVE_FORMATS, ItagItem.ItagType.VIDEO_ONLY,
                 getVideoStreamBuilderHelper(true), "video-only");
+        System.out.println("[DEBUG] Found " + streams.size() + " video-only streams");
+        return streams;
     }
 
     /**
@@ -1036,19 +1042,29 @@ public class YoutubeStreamExtractor extends StreamExtractor {
                         .done())
                 .getBytes(UTF_8);
 
+        System.out.println("[DEBUG] Fetching iOS player response for video ID: " + videoId);
         final JsonObject iosPlayerResponse = getJsonIosPostResponse(PLAYER,
                 mobileBody, localization, "&t=" + generateTParameter()
                         + "&id=" + videoId);
 
         if (isPlayerResponseNotValid(iosPlayerResponse, videoId)) {
+            System.out.println("[DEBUG] iOS player response is not valid. Response video ID: " + 
+                iosPlayerResponse.getObject("videoDetails").getString("videoId") + 
+                " Expected: " + videoId);
             throw new ExtractionException("IOS player response is not valid");
         }
 
         final JsonObject streamingData = iosPlayerResponse.getObject(STREAMING_DATA);
         if (!isNullOrEmpty(streamingData)) {
+            System.out.println("[DEBUG] Found iOS streaming data with formats: " + 
+                (streamingData.has(FORMATS) ? streamingData.getArray(FORMATS).size() : 0) + 
+                " and adaptive formats: " + 
+                (streamingData.has(ADAPTIVE_FORMATS) ? streamingData.getArray(ADAPTIVE_FORMATS).size() : 0));
             iosStreamingData = streamingData;
             playerCaptionsTracklistRenderer = iosPlayerResponse.getObject("captions")
                     .getObject("playerCaptionsTracklistRenderer");
+        } else {
+            System.out.println("[DEBUG] No streaming data found in iOS player response");
         }
     }
 
@@ -1424,21 +1440,27 @@ public class YoutubeStreamExtractor extends StreamExtractor {
             @Nonnull final ItagItem.ItagType itagTypeWanted,
             @Nonnull final String contentPlaybackNonce) {
         if (streamingData == null || !streamingData.has(streamingDataKey)) {
+            System.out.println("[DEBUG] No " + streamingDataKey + " found in streaming data");
             return java.util.stream.Stream.empty();
         }
 
+        System.out.println("[DEBUG] Processing " + streamingDataKey + " for " + itagTypeWanted);
         return streamingData.getArray(streamingDataKey).stream()
                 .filter(JsonObject.class::isInstance)
                 .map(JsonObject.class::cast)
                 .map(formatData -> {
                     try {
-                        final ItagItem itagItem = ItagItem.getItag(formatData.getInt("itag"));
+                        final int itag = formatData.getInt("itag");
+                        System.out.println("[DEBUG] Processing format with itag: " + itag);
+                        final ItagItem itagItem = ItagItem.getItag(itag);
                         if (itagItem.itagType == itagTypeWanted) {
                             return buildAndAddItagInfoToList(videoId, formatData, itagItem,
                                     itagItem.itagType, contentPlaybackNonce);
+                        } else {
+                            System.out.println("[DEBUG] Skipping itag " + itag + " - wrong type (wanted " + itagTypeWanted + ", got " + itagItem.itagType + ")");
                         }
-                    } catch (final IOException | ExtractionException ignored) {
-                        // if the itag is not supported and getItag fails, we end up here
+                    } catch (final IOException | ExtractionException e) {
+                        System.out.println("[DEBUG] Error processing itag: " + e.getMessage());
                     }
                     return null;
                 })
