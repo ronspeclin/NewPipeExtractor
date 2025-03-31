@@ -157,7 +157,7 @@ public final class YoutubeParsingHelper {
      * The client version for InnerTube requests with the {@code WEB} client, used as the last
      * fallback if the extraction of the real one failed.
      */
-    private static final String HARDCODED_CLIENT_VERSION = "2.20240718.01.00";
+    private static final String HARDCODED_CLIENT_VERSION = "2.20250122.04.00";
 
     /**
      * The InnerTube API key which should be used by YouTube's desktop website, used as a fallback
