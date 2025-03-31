@@ -189,10 +189,10 @@ public final class YoutubeParsingHelper {
      * <p>
      * It can be extracted by getting the latest release version of the app on
      * <a href="https://apps.apple.com/us/app/youtube-watch-listen-stream/id544007664/">the App
-     * Store page of the YouTube app</a>, in the {@code What’s New} section.
+     * Store page of the YouTube app</a>, in the {@code What's New} section.
      * </p>
      */
-    private static final String IOS_YOUTUBE_CLIENT_VERSION = "20.03.02";
+    private static final String IOS_YOUTUBE_CLIENT_VERSION = "19.09.3";
 
     /**
      * The InnerTube API key used by the {@code iOS} client. Found with the help of
@@ -1312,24 +1312,24 @@ public final class YoutubeParsingHelper {
                     .object("client")
                         .value("clientName", "IOS")
                         .value("clientVersion", IOS_YOUTUBE_CLIENT_VERSION)
-                        .value("deviceMake",  "Apple")
-                        // Device model is required to get 60fps streams
+                        .value("deviceMake", "Apple")
                         .value("deviceModel", IOS_DEVICE_MODEL)
                         .value("platform", "MOBILE")
                         .value("osName", "iOS")
-                        // The value of this field seems to use the following structure:
-                        // "iOS version.0.build version"
-                        // The build version corresponding to the iOS version used can be found on
-                        // https://theapplewiki.com/wiki/Firmware/iPhone/18.x#iPhone_15_Pro_Max
-                        .value("osVersion", "18.2.1.22C161")
+                        .value("osVersion", "17.3.1")
                         .value("visitorData", visitorData)
                         .value("hl", localization.getLocalizationCode())
                         .value("gl", contentCountry.getCountryCode())
+                        .value("timeZone", "UTC")
+                        .value("utcOffsetMinutes", 0)
                     .end()
                     .object("user")
-                        // TO DO: provide a way to enable restricted mode with:
-                        // .value("enableSafetyMode", boolean)
                         .value("lockedSafetyMode", false)
+                    .end()
+                    .object("request")
+                        .array("internalExperimentFlags")
+                        .end()
+                        .value("useSsl", true)
                     .end()
                 .end();
         // @formatter:on
