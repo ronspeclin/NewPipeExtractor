@@ -82,6 +82,7 @@ import org.schabi.newpipe.extractor.stream.StreamSegment;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.extractor.stream.SubtitlesStream;
 import org.schabi.newpipe.extractor.stream.VideoStream;
+import org.schabi.newpipe.extractor.stream.VideoStream.Builder;
 import org.schabi.newpipe.extractor.utils.JsonUtils;
 import org.schabi.newpipe.extractor.utils.LocaleCompat;
 import org.schabi.newpipe.extractor.utils.Pair;
@@ -672,9 +673,11 @@ public class YoutubeStreamExtractor extends StreamExtractor {
         
         // If no regular formats are available, use adaptive formats
         if (streams.isEmpty()) {
-            // When using adaptive formats, the streams are video-only
+            // When using adaptive formats, create video-only streams
+            Builder builder = getVideoStreamBuilderHelper(true);
+            builder.setVideoOnly(true);  // Explicitly mark as video-only
             streams = getItags(ADAPTIVE_FORMATS, ItagItem.ItagType.VIDEO_ONLY,
-                    getVideoStreamBuilderHelper(true), "video");
+                    builder, "video");
         }
         return streams;
     }
@@ -682,8 +685,10 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     @Override
     public List<VideoStream> getVideoOnlyStreams() throws ExtractionException {
         assertPageFetched();
+        Builder builder = getVideoStreamBuilderHelper(true);
+        builder.setVideoOnly(true);  // Explicitly mark as video-only
         List<VideoStream> streams = getItags(ADAPTIVE_FORMATS, ItagItem.ItagType.VIDEO_ONLY,
-                getVideoStreamBuilderHelper(true), "video-only");
+                builder, "video-only");
         return streams;
     }
 
