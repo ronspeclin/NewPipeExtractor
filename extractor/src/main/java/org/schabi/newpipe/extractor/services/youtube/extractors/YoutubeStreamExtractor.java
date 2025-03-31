@@ -104,6 +104,9 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+
+
 public class YoutubeStreamExtractor extends StreamExtractor {
     /*//////////////////////////////////////////////////////////////////////////
     // Exceptions
@@ -664,17 +667,14 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     @Override
     public List<VideoStream> getVideoStreams() throws ExtractionException {
         assertPageFetched();
-        System.out.println("[YTExtractor] Getting video streams from formats");
         List<VideoStream> streams = getItags(FORMATS, ItagItem.ItagType.VIDEO,
                 getVideoStreamBuilderHelper(false), "video");
-        System.out.println("[YTExtractor] Found " + streams.size() + " video streams");
         
         // If no regular formats are available, use adaptive formats
         if (streams.isEmpty()) {
-            System.out.println("[YTExtractor] No regular formats found, using adaptive formats");
+            // When using adaptive formats, the streams are video-only
             streams = getItags(ADAPTIVE_FORMATS, ItagItem.ItagType.VIDEO_ONLY,
-                    getVideoStreamBuilderHelper(false), "video");
-            System.out.println("[YTExtractor] Found " + streams.size() + " streams from adaptive formats");
+                    getVideoStreamBuilderHelper(true), "video");
         }
         return streams;
     }
@@ -682,10 +682,8 @@ public class YoutubeStreamExtractor extends StreamExtractor {
     @Override
     public List<VideoStream> getVideoOnlyStreams() throws ExtractionException {
         assertPageFetched();
-        System.out.println("[YTExtractor] Getting video-only streams from adaptive formats");
         List<VideoStream> streams = getItags(ADAPTIVE_FORMATS, ItagItem.ItagType.VIDEO_ONLY,
                 getVideoStreamBuilderHelper(true), "video-only");
-        System.out.println("[YTExtractor] Found " + streams.size() + " video-only streams");
         return streams;
     }
 
@@ -1049,29 +1047,19 @@ public class YoutubeStreamExtractor extends StreamExtractor {
                         .done())
                 .getBytes(UTF_8);
 
-        System.out.println("[YTExtractor] Fetching iOS player response for video ID: " + videoId);
         final JsonObject iosPlayerResponse = getJsonIosPostResponse(PLAYER,
                 mobileBody, localization, "&t=" + generateTParameter()
                         + "&id=" + videoId);
 
         if (isPlayerResponseNotValid(iosPlayerResponse, videoId)) {
-            System.out.println("[YTExtractor] iOS player response is not valid. Response video ID: " + 
-                iosPlayerResponse.getObject("videoDetails").getString("videoId") + 
-                " Expected: " + videoId);
             throw new ExtractionException("IOS player response is not valid");
         }
 
         final JsonObject streamingData = iosPlayerResponse.getObject(STREAMING_DATA);
         if (!isNullOrEmpty(streamingData)) {
-            System.out.println("[YTExtractor] Found iOS streaming data with formats: " + 
-                (streamingData.has(FORMATS) ? streamingData.getArray(FORMATS).size() : 0) + 
-                " and adaptive formats: " + 
-                (streamingData.has(ADAPTIVE_FORMATS) ? streamingData.getArray(ADAPTIVE_FORMATS).size() : 0));
             iosStreamingData = streamingData;
             playerCaptionsTracklistRenderer = iosPlayerResponse.getObject("captions")
                     .getObject("playerCaptionsTracklistRenderer");
-        } else {
-            System.out.println("[YTExtractor] No streaming data found in iOS player response");
         }
     }
 
@@ -1447,27 +1435,22 @@ public class YoutubeStreamExtractor extends StreamExtractor {
             @Nonnull final ItagItem.ItagType itagTypeWanted,
             @Nonnull final String contentPlaybackNonce) {
         if (streamingData == null || !streamingData.has(streamingDataKey)) {
-            System.out.println("[YTExtractor] No " + streamingDataKey + " found in streaming data");
             return java.util.stream.Stream.empty();
         }
 
-        System.out.println("[YTExtractor] Processing " + streamingDataKey + " for " + itagTypeWanted);
         return streamingData.getArray(streamingDataKey).stream()
                 .filter(JsonObject.class::isInstance)
                 .map(JsonObject.class::cast)
                 .map(formatData -> {
                     try {
                         final int itag = formatData.getInt("itag");
-                        System.out.println("[YTExtractor] Processing format with itag: " + itag);
                         final ItagItem itagItem = ItagItem.getItag(itag);
                         if (itagItem.itagType == itagTypeWanted) {
                             return buildAndAddItagInfoToList(videoId, formatData, itagItem,
                                     itagItem.itagType, contentPlaybackNonce);
-                        } else {
-                            System.out.println("[YTExtractor] Skipping itag " + itag + " - wrong type (wanted " + itagTypeWanted + ", got " + itagItem.itagType + ")");
                         }
                     } catch (final IOException | ExtractionException e) {
-                        System.out.println("[YTExtractor] Error processing itag: " + e.getMessage());
+                        // Ignore exceptions
                     }
                     return null;
                 })
