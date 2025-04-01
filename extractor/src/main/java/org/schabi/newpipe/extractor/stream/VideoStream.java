@@ -59,15 +59,11 @@ public final class VideoStream extends Stream {
         private String id;
         private String content;
         private boolean isUrl;
-        private DeliveryMethod deliveryMethod = DeliveryMethod.PROGRESSIVE_HTTP;
-        @Nullable
         private MediaFormat mediaFormat;
-        @Nullable
+        private DeliveryMethod deliveryMethod = DeliveryMethod.PROGRESSIVE_HTTP;
         private String manifestUrl;
-        // Use of the Boolean class instead of the primitive type needed for setter call check
         private Boolean isVideoOnly;
         private String resolution;
-        @Nullable
         private ItagItem itagItem;
 
         /**
@@ -241,34 +237,16 @@ public final class VideoStream extends Stream {
         @Nonnull
         public VideoStream build() {
             if (id == null) {
-                throw new IllegalStateException(
-                        "The identifier of the video stream has been not set or is null. If you "
-                                + "are not able to get an identifier, use the static constant "
-                                + "ID_UNKNOWN of the Stream class.");
+                throw new IllegalStateException("The id must be set");
             }
-
             if (content == null) {
-                throw new IllegalStateException("The content of the video stream has been not set "
-                        + "or is null. Please specify a non-null one with setContent.");
+                throw new IllegalStateException("The content must be set");
             }
-
-            if (deliveryMethod == null) {
-                throw new IllegalStateException(
-                        "The delivery method of the video stream has been set as null, which is "
-                                + "not allowed. Pass a valid one instead with setDeliveryMethod.");
-            }
-
             if (isVideoOnly == null) {
-                throw new IllegalStateException("The video stream has been not set as a "
-                        + "video-only stream or as a video stream with embedded audio. Please "
-                        + "specify this information with setIsVideoOnly.");
+                throw new IllegalStateException("The isVideoOnly flag must be set");
             }
-
             if (resolution == null) {
-                throw new IllegalStateException(
-                        "The resolution of the video stream has been not set. Please specify it "
-                                + "with setResolution (use an empty string if you are not able to "
-                                + "get it).");
+                throw new IllegalStateException("The resolution must be set");
             }
 
             return new VideoStream(id, content, isUrl, mediaFormat, deliveryMethod, resolution,
